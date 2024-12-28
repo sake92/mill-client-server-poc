@@ -1,0 +1,23 @@
+package build
+
+import mill._
+import mill.scalalib._, scalanativelib._
+import mill.scalalib.scalafmt._
+import mill.scalalib.publish._
+
+object client extends ScalaNativeModule {
+  def scalaVersion = "3.6.2"
+  def scalaNativeVersion = "0.5.6"
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::mainargs::0.7.6",
+    ivy"com.lihaoyi::os-lib::0.11.3"
+  )
+}
+
+object server extends ScalaModule {
+  def scalaVersion = "3.6.2"
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::mainargs::0.7.6",
+    ivy"com.lihaoyi::os-lib::0.11.3"
+  )
+}
