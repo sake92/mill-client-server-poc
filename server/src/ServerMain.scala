@@ -17,7 +17,7 @@ object ServerMain {
     println(s"Starting Mill Server...")
     log(s"Starting Mill Server...")
     val serverSocket = new ServerSocket(9999)
-    while (true) {
+    while true do {
       log("Waiting for a new client...")
       val clientSocket = serverSocket.accept()
       log("A new client connected!")
@@ -27,7 +27,6 @@ object ServerMain {
   }
 
   def handleNewClient(socket: Socket) = {
-
     val task: Runnable = () => {
       val pw = new PrintWriter(socket.getOutputStream(), true)
       // acquire the lock needed for task
@@ -35,10 +34,10 @@ object ServerMain {
         pw.println("Task lock busy, waiting for it to be released...")
         Thread.sleep(1000)
       }
-
+      // do the task
       pw.println("Working on a task...")
       Thread.sleep(5_000) // busy working on task
-      pw.println("Done!")
+      pw.println("DONE")
       pw.close()
       socket.close()
       taskLock.unlock()

@@ -1,5 +1,6 @@
 package client
 
+import java.net.ConnectException
 import java.net.Socket
 import java.io.InputStreamReader
 import java.io.BufferedReader
@@ -24,7 +25,7 @@ object ClientMain {
     while (reading) {
       val isr = new BufferedReader(new InputStreamReader(socket.getInputStream()))
       isr.readLine() match {
-        case "Done!" =>
+        case "DONE" =>
           reading = false
         case msg =>
           println(s"GOT MSG: ${msg}")
@@ -35,14 +36,14 @@ object ClientMain {
 
   def connectToServer(): Socket = {
     try {
-      new java.net.Socket("127.0.0.1", 9999)
+      new Socket("127.0.0.1", 9999)
     } catch {
-      case e: java.net.ConnectException =>
+      case e: ConnectException =>
         println("Could not connect to server. Starting a new one...")
         val res = os.spawn(cmd = ("java", "-jar", "out/server/assembly.dest/out.jar"))
         println(res.wrapped)
         Thread.sleep(1000) // wait for server to start
-        new java.net.Socket("127.0.0.1", 9999)
+        new Socket("127.0.0.1", 9999)
     }
   }
 
