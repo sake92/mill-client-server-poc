@@ -39,6 +39,19 @@ GOT MSG: Working on task 'mytask' ...
 ```
 
 ---
+There is a POC for task level locking.  
+If 2 clients run the same task, it will be done with a lock held.  
+This is output from the second client:
+```sh
+> java -jar ./out/client/jvm/assembly.dest/out.jar -c mytask
+GOT MSG: Task lock busy, waiting for it to be released...
+GOT MSG: Task lock busy, waiting for it to be released...
+GOT MSG: Task lock busy, waiting for it to be released...
+GOT MSG: Working on task 'mytask' ...
+```
+
+
+---
 The only "real" command you can run at the moment is "SHUTDOWN", which stops the server.
 ```
 java -jar ./out/client/jvm/assembly.dest/out.jar -c SHUTDOWN
