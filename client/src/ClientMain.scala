@@ -1,12 +1,9 @@
 package client
 
+import java.net.Socket
+import java.io.InputStreamReader
+import java.io.BufferedReader
 import mainargs.{main, arg, ParserForMethods, Flag}
-import java.net.UnixDomainSocketAddress
-import java.nio.channels.SocketChannel
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
-import scala.io.StdIn
-import java.nio.ByteBuffer
 
 object ClientMain {
 
@@ -22,41 +19,30 @@ object ClientMain {
   }
 
   def executeServerCommand(): Unit = {
-    val socketChannel = connectToServer("./out/serversocket")
+    val socket = connectToServer()
     var reading = true
     while (reading) {
-      readMessageFromSocket(socketChannel) match {
-        case Some(msg) =>
+      val isr = new BufferedReader(new InputStreamReader(socket.getInputStream()))
+      isr.readLine() match {
+        case "Done!" =>
+          reading = false
+        case msg =>
           println(s"GOT MSG: ${msg}")
-          if msg == "Done!" then reading = false
-        case None =>
       }
       Thread.sleep(100)
     }
   }
 
-  def connectToServer(socketPath: String): SocketChannel = {
-    val socketAddress = UnixDomainSocketAddress.of(socketPath)
+  def connectToServer(): Socket = {
     try {
-      SocketChannel.open(socketAddress)
+      new java.net.Socket("127.0.0.1", 9999)
     } catch {
       case e: java.net.ConnectException =>
         println("Could not connect to server. Starting a new one...")
         val res = os.spawn(cmd = ("java", "-jar", "out/server/assembly.dest/out.jar"))
-        println(res.wrapped.info())
+        println(res.wrapped)
         Thread.sleep(1000) // wait for server to start
-        SocketChannel.open(socketAddress)
-    }
-  }
-
-  def readMessageFromSocket(channel: SocketChannel) = {
-    val buffer = ByteBuffer.allocate(1024)
-    val bytesRead = channel.read(buffer)
-    Option.when(bytesRead > 0) {
-      val bytes = Array.ofDim[Byte](bytesRead)
-      buffer.flip()
-      buffer.get(bytes)
-      new String(bytes, "utf8")
+        new java.net.Socket("127.0.0.1", 9999)
     }
   }
 

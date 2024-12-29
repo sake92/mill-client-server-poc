@@ -1,15 +1,12 @@
 package server
 
-import mainargs.{main, arg, ParserForMethods, Flag}
-import java.nio.ByteBuffer
-import java.nio.file.Files
-import java.net.UnixDomainSocketAddress
-import java.nio.channels.ServerSocketChannel
-import java.net.StandardProtocolFamily
+import java.io.PrintWriter
+import java.net.ServerSocket
+import java.net.Socket
 import java.nio.charset.StandardCharsets
-import scala.util.Using
-import java.nio.channels.SocketChannel
 import java.util.concurrent.locks.ReentrantLock
+import scala.util.Using
+import mainargs.{main, arg, ParserForMethods, Flag}
 
 object ServerMain {
 
@@ -19,47 +16,34 @@ object ServerMain {
   def run() = {
     println(s"Starting Mill Server...")
     log(s"Starting Mill Server...")
-    val address = UnixDomainSocketAddress.of("./out/serversocket")
-    Files.deleteIfExists(address.getPath())
-    Using.resource(ServerSocketChannel.open(StandardProtocolFamily.UNIX)) { serverSocketChannel =>
-      serverSocketChannel.bind(address)
-      while (true) {
-        // serverSocketChannel.configureBlocking(true)
-        log("Waiting for a new client...")
-        val clientSocketChannel = serverSocketChannel.accept()
-        log("A new client connected!")
-        handleNewClient(clientSocketChannel)
-      }
+    val serverSocket = new ServerSocket(9999)
+    while (true) {
+      log("Waiting for a new client...")
+      val clientSocket = serverSocket.accept()
+      log("A new client connected!")
+      handleNewClient(clientSocket)
     }
     log("Exiting server..")
-    Files.deleteIfExists(address.getPath())
   }
 
-  def handleNewClient(clientSocketChannel: SocketChannel) = {
-    val task: Runnable = () => {
-      // acquire the lock needed for task
-      while !taskLock.tryLock() do
-        writeToChannel(clientSocketChannel, "Task lock busy, waiting for it to be released...")
-        Thread.sleep(1000)
+  def handleNewClient(socket: Socket) = {
 
-      // write something to client
-      writeToChannel(clientSocketChannel, "Working on a task...")
+    val task: Runnable = () => {
+      val pw = new PrintWriter(socket.getOutputStream(), true)
+      // acquire the lock needed for task
+      while !taskLock.tryLock() do {
+        pw.println("Task lock busy, waiting for it to be released...")
+        Thread.sleep(1000)
+      }
+
+      pw.println("Working on a task...")
       Thread.sleep(5_000) // busy working on task
-      writeToChannel(clientSocketChannel, "Done!")
-      clientSocketChannel.close()
+      pw.println("Done!")
+      pw.close()
+      socket.close()
       taskLock.unlock()
     }
     new Thread(task).start()
-  }
-
-  def writeToChannel(channel: SocketChannel, msg: String) = {
-    val buffer = ByteBuffer.allocate(1024)
-    buffer.clear()
-    buffer.put(msg.getBytes("utf8"))
-    buffer.flip()
-    while (buffer.hasRemaining()) {
-      channel.write(buffer)
-    }
   }
 
   def log(str: String) =
