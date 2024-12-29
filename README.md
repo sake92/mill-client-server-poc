@@ -11,14 +11,14 @@ java -jar ./out/server/assembly.dest/out.jar
 
 ### JVM
 ```sh
-./mill -i --no-build-lock client.jvm.assembly
+./mill -i client.jvm.assembly
 java -jar ./out/client/jvm/assembly.dest/out.jar
 ```
 
 
 ### ScalaNative
 ```sh
-./mill -i --no-build-lock show client.native.nativeLink
+./mill -i show client.native.nativeLink
 ./out/client/native/nativeLink.dest/out.exe
 ```
 

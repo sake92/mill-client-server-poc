@@ -15,15 +15,15 @@ object ServerMain {
   @main
   def run() = {
     println(s"Starting Mill Server...")
-    log(s"Starting Mill Server...")
     val serverSocket = new ServerSocket(9999)
+    println(s"Started Mill Server...")
     while true do {
-      log("Waiting for a new client...")
+      println("Waiting for a new client...")
       val clientSocket = serverSocket.accept()
-      log("A new client connected!")
+      println("A new client connected!")
       handleNewClient(clientSocket)
     }
-    log("Exiting server..")
+    println("Exiting server..")
   }
 
   def handleNewClient(socket: Socket) = {
@@ -44,9 +44,6 @@ object ServerMain {
     }
     new Thread(task).start()
   }
-
-  def log(str: String) =
-    os.write.append(os.pwd / "server.txt", s"${str}\n")
 
   def main(args: Array[String]): Unit =
     ParserForMethods(this).runOrExit(args)
