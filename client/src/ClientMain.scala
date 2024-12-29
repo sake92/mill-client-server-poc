@@ -54,10 +54,9 @@ object ClientMain {
     val bytesRead = channel.read(buffer)
     Option.when(bytesRead > 0) {
       val bytes = Array.ofDim[Byte](bytesRead)
-      buffer.flip();
-      buffer.get(bytes);
-      val message = new String(bytes);
-      message
+      buffer.flip()
+      buffer.get(bytes)
+      new String(bytes, "utf8")
     }
   }
 

@@ -37,17 +37,14 @@ object ServerMain {
 
   def handleNewClient(clientSocketChannel: SocketChannel) = {
     val task: Runnable = () => {
+      // acquire the lock needed for task
       while !taskLock.tryLock() do
         writeToChannel(clientSocketChannel, "Task lock busy, waiting for it to be released...")
         Thread.sleep(1000)
 
       // write something to client
-      log("Writing hello..")
-      writeToChannel(clientSocketChannel, "Hello!")
-      Thread.sleep(1_000)
-      log("Writing task..")
       writeToChannel(clientSocketChannel, "Working on a task...")
-      Thread.sleep(5_000)
+      Thread.sleep(5_000) // busy working on task
       writeToChannel(clientSocketChannel, "Done!")
       clientSocketChannel.close()
       taskLock.unlock()
@@ -58,7 +55,7 @@ object ServerMain {
   def writeToChannel(channel: SocketChannel, msg: String) = {
     val buffer = ByteBuffer.allocate(1024)
     buffer.clear()
-    buffer.put(msg.getBytes())
+    buffer.put(msg.getBytes("utf8"))
     buffer.flip()
     while (buffer.hasRemaining()) {
       channel.write(buffer)
