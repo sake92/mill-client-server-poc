@@ -1,9 +1,8 @@
 package client
 
+import java.io.*
 import java.net.ConnectException
 import java.net.Socket
-import java.io.InputStreamReader
-import java.io.BufferedReader
 import mainargs.{main, arg, ParserForMethods, Flag}
 
 object ClientMain {
@@ -11,16 +10,23 @@ object ClientMain {
   @main
   def run(
       @arg(short = 'c', doc = "Command to execute")
-      command: Seq[String] = Seq("--version")
+      command: String = "--version"
   ) = {
     command match {
-      case Seq("--version") => println("Mill version 0.12")
-      case _                => executeServerCommand()
+      case "--version" =>
+        println("Mill version 0.12")
+      case _ =>
+        executeServerCommand(command)
     }
   }
 
-  def executeServerCommand(): Unit = {
+  def executeServerCommand(command: String): Unit = {
+    println(s"Executing server command '${command}'")
     val socket = connectToServer()
+    // send command
+    val pw = new PrintWriter(socket.getOutputStream(), true)
+    pw.println(command)
+    // read from server
     var reading = true
     while (reading) {
       val isr = new BufferedReader(new InputStreamReader(socket.getInputStream()))
