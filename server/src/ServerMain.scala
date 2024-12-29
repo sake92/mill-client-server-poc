@@ -9,11 +9,15 @@ import java.net.StandardProtocolFamily
 import java.nio.charset.StandardCharsets
 import scala.util.Using
 import java.nio.channels.SocketChannel
+import java.util.concurrent.locks.ReentrantLock
 
 object ServerMain {
 
+  val taskLock = new ReentrantLock()
+
   @main
   def run() = {
+    println(s"Starting Mill Server...")
     log(s"Starting Mill Server...")
     val address = UnixDomainSocketAddress.of("./out/serversocket")
     Files.deleteIfExists(address.getPath())
@@ -32,8 +36,11 @@ object ServerMain {
   }
 
   def handleNewClient(clientSocketChannel: SocketChannel) = {
-    var done = false
     val task: Runnable = () => {
+      while !taskLock.tryLock() do
+        writeToChannel(clientSocketChannel, "Task lock busy, waiting for it to be released...")
+        Thread.sleep(1000)
+
       // write something to client
       log("Writing hello..")
       writeToChannel(clientSocketChannel, "Hello!")
@@ -43,6 +50,7 @@ object ServerMain {
       Thread.sleep(5_000)
       writeToChannel(clientSocketChannel, "Done!")
       clientSocketChannel.close()
+      taskLock.unlock()
     }
     new Thread(task).start()
   }
