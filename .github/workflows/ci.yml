@@ -40,11 +40,11 @@ jobs:
           
           # try native version
           chmod +x ./out/client/native/nativeLink.dest/out
-          ./out/client/native/nativeLink.dest/out.exe -c version
-          ./out/client/native/nativeLink.dest/out.exe -c noop
-          ./out/client/native/nativeLink.dest/out.exe -c subprocess
-          ./out/client/native/nativeLink.dest/out.exe -c task1
-          ./out/client/native/nativeLink.dest/out.exe -c task2
+          ./out/client/native/nativeLink.dest/out -c version
+          ./out/client/native/nativeLink.dest/out -c noop
+          ./out/client/native/nativeLink.dest/out -c subprocess
+          ./out/client/native/nativeLink.dest/out -c task1
+          ./out/client/native/nativeLink.dest/out -c task2
           
           # mini bench
           hyperfine --show-output "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
