@@ -2,8 +2,6 @@ package server
 
 import java.io.RandomAccessFile
 import java.net.{ServerSocket, SocketException}
-import java.nio.charset.StandardCharsets
-import java.nio.channels.FileLock
 import java.nio.file.Paths
 import java.util.concurrent.locks.ReentrantLock
 import scala.util.Using
@@ -19,13 +17,13 @@ object ServerMain {
   val taskLock = new ReentrantLock()
 
   @main
-  def run() = {
+  def run(): Unit = {
     println(s"Starting Mill Server...")
     // acquire the server file lock
     // there can only be **one server running at a time**
     def runWithServerFileLock(serverCode: => Unit): Unit =
-      Using.resource(new RandomAccessFile(serverLockFile.toFile(), "rw")) { raf =>
-        Using.resource(raf.getChannel()) { ch =>
+      Using.resource(new RandomAccessFile(serverLockFile.toFile, "rw")) { raf =>
+        Using.resource(raf.getChannel) { ch =>
           var attempts = 1
           var didRun = false
           while attempts <= 5 do {
@@ -60,10 +58,9 @@ object ServerMain {
     } catch {
       case e: SocketException =>
         // on shutdown (server socket .close()) exception is thrown
-        if e.getMessage() == "Socket closed" then {
-          println("Exiting server..")
-          // serverLock.release()
-        } else e.printStackTrace()
+        if e.getMessage == "Socket closed"
+        then println("Exiting server..")
+        else e.printStackTrace()
     }
   }
 
