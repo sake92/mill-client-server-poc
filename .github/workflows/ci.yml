@@ -21,12 +21,12 @@ jobs:
           java-version: 21
       - name: Build and run
         run: |
-          # build
+          # build and run server
           ./mill server.assembly
+          java -jar ./out/server/assembly.dest/out.jar &
+          # build clients
           ./mill client.jvm.assembly
           ./mill client.native.nativeLink
-          # start the server in background
-          java -jar ./out/server/assembly.dest/out.jar &
           # try JVM version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
@@ -44,14 +44,13 @@ jobs:
           java -jar ./out/client/jvm/assembly.dest/out.jar -c shutdown
       - name: Mini benchmark
         run: |
-          # install hyperfine
           sudo apt-get install -y hyperfine
-          # build
+          # build and run server
           ./mill server.assembly
+          java -jar ./out/server/assembly.dest/out.jar &
+          # build clients
           ./mill client.jvm.assembly
           ./mill client.native.nativeLink
-          # start the server in background
-          java -jar ./out/server/assembly.dest/out.jar &
           # benchmark jvm vs native
           hyperfine --show-output "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
           hyperfine --show-output "./out/client/native/nativeLink.dest/out -c noop"
