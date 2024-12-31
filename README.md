@@ -23,13 +23,13 @@ Both JVM and ScalaNative work.
 ### JVM
 ```sh
 ./mill client.jvm.assembly
-java -jar ./out/client/jvm/assembly.dest/out.jar
+java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
 ```
 
 ### ScalaNative
 ```sh
 ./mill show client.native.nativeLink
-./out/client/native/nativeLink.dest/out.exe
+./out/client/native/nativeLink.dest/out.exe -c noop
 ```
 
 ---
