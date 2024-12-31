@@ -36,7 +36,7 @@ jobs:
           java -jar ./out/client/jvm/assembly.dest/out.jar -c task2
           java -jar ./out/client/jvm/assembly.dest/out.jar -c shutdown
           # try native version
-          chmod +x ./out/client/native/nativeLink.dest/out.exe
+          chmod +x ./out/client/native/nativeLink.dest/out
           ./out/client/native/nativeLink.dest/out.exe -c version
           ./out/client/native/nativeLink.dest/out.exe -c noop
           ./out/client/native/nativeLink.dest/out.exe -c subprocess
@@ -45,4 +45,4 @@ jobs:
           ./out/client/native/nativeLink.dest/out.exe -c shutdown
           # mini bench
           hyperfine --show-output "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
-          hyperfine --show-output "./out/client/native/nativeLink.dest/out.exe -c noop"
+          hyperfine --show-output "./out/client/native/nativeLink.dest/out -c noop"
