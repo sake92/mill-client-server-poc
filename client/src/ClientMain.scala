@@ -14,26 +14,27 @@ object ClientMain {
 
   @volatile private var active = true
 
-  private var serverExecuteThread: Thread = scala.compiletime.uninitialized
-
   // cant interrupt inputStream.read, so we just inputStream.close !
   private var serverSocket = Option.empty[Socket]
 
+  // propagate subprocess' exit code if available
+  private var exitCode = 0
+
   @main
-  def run(
-      @arg(short = 'c', doc = "Command to execute")
-      command: String = "--version"
-  ): Unit = {
+  def run(@arg(short = 'c', doc = "Command to execute") command: String): Unit = {
     command match {
-      case "--version" =>
+      case "version" =>
         println("Mill version 0.12")
       case _ =>
         // read messages from server in separate thread
-        serverExecuteThread = new Thread(executeServerCommand(command))
+        val serverExecuteThread = new Thread(executeServerCommand(command))
         serverExecuteThread.start()
+
         // do the client work sequentially
         handleServerMessages()
         serverSocket.foreach(_.getInputStream.close()) // stop reading from server
+
+        System.exit(exitCode)
     }
   }
 
@@ -42,18 +43,18 @@ object ClientMain {
       val socket = connectToServer()
       serverSocket = Some(socket)
       // send command
-      val clientMessage = ClientMessage.ExecuteCommand(command)
+      val clientMessage: ClientMessage =
+        if command == "shutdown" then ClientMessage.Shutdown()
+        else ClientMessage.ExecuteCommand(command)
       sendMessageToServer(socket, clientMessage)
       // read from server and act on message
-      while active do {
-        println("Waiting for a message...")
+      while true do {
         val inputStream = socket.getInputStream
         val size = inputStream.read()
         val msgBytes = inputStream.readNBytes(size)
         val msg = upickle.default.readBinary[ServerMessage](msgBytes)
         messagesQueue.put(msg)
         Thread.sleep(100)
-        println("Read a message!")
       }
     } catch {
       // expected
@@ -64,16 +65,13 @@ object ClientMain {
     while active do {
       messagesQueue.take() match
         case ServerMessage.Println(text) =>
-          println(s"[server] ${text}")
+          println(text)
         case ServerMessage.RunSubprocess(cmd) =>
-          println(s"Running a subprocess ${cmd}")
+          println(s"Running a subprocess: ${cmd}")
           val res = os.proc(cmd).call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
-
-          println(s"Opppp ${res.exitCode}")
-        //  println("[client] Executing subprocess done Output:")
-        // println(res.out.text())
+          exitCode = res.exitCode
         case ServerMessage.Done() =>
-          println("[client] Done")
+          println("Done")
           active = false
     }
   }

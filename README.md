@@ -3,8 +3,8 @@
 Proof of Concept goals:
 - one server per workspace/project
 - multiple simultaneous clients
-- messagepack 2-way client-server protocol
-- in-memory task locking
+- 2-way client-server protocol, in messagepack lightweight format
+- task locking
 
 TODOs:
 - restart server automatically when its config file changes
@@ -34,48 +34,48 @@ java -jar ./out/client/jvm/assembly.dest/out.jar
 
 ---
 ## Behavior
-By default the client just prints a version (no server interaction)
-```
-java -jar ./out/client/jvm/assembly.dest/out.jar
-Mill version 0.12
-```
 
 ---
+### Automatic server start
 It will start the server *if needed* (if it can't connect).  
 Note that it is not launching the server as a detached/daemon process yet..
 ```
-java -jar ./out/client/jvm/assembly.dest/out.jar
+java -jar ./out/client/jvm/assembly.dest/out.jar -c task
 Could not connect to server. Starting a new one...
-GOT MSG: Working on task 'mytask' ...
+........
 ```
 
 ---
+### Task-level locking
 If 2 clients run the same task, it will be done with an in-memory lock being held.  
 This is output from the client2 (while client1 was already running the task):
 ```sh
-> java -jar ./out/client/jvm/assembly.dest/out.jar -c mytask
-GOT MSG: Task lock busy, waiting for it to be released...
-GOT MSG: Task lock busy, waiting for it to be released...
-GOT MSG: Task lock busy, waiting for it to be released...
-GOT MSG: Working on task 'mytask' ...
+> java -jar ./out/client/jvm/assembly.dest/out.jar -c task
+[server] Task lock busy, waiting for it to be released...
+[server] Task lock busy, waiting for it to be released...
+[server] Task lock busy, waiting for it to be released...
+[server] Working on task 'mytask' ...
 ```
 
 
 ---
-The only "real" command you can run at the moment is "SHUTDOWN", which stops the server.
-```
-java -jar ./out/client/jvm/assembly.dest/out.jar -c SHUTDOWN
-```
-
+There are a few commands implemented:
+- `version`, prints the version (no server interaction at all)
+- `noop`, does nothing on server, just sends back a "done" command
+- `subprocess`, tells the client to run a subprocess (not interactive)
+- `interactiveSubprocess`, tells the client to run a subprocess (interactive, requires input from user)
+- `task1`, runs a slow task, so you can test the task-level locking behavior
+- `task2`, same as `task1`, but using a different lock, so they can run independently
+- `shutdown`, stops the server
 
 ----
 
 ### Measuring JVM vs ScalaNative
 
-On windows:
 ```sh
-Measure-Command { start-process  java -argumentlist "-jar ./out/client/jvm/assembly.dest/out.jar"  -Wait }
-Measure-Command { start-process  ./out/client/native/nativeLink.dest/out.exe  -Wait }
+hyperfine "java -jar .\out\client\jvm\assembly.dest\out.jar -c noop"
+# vs
+hyperfine "./out/client/native/nativeLink.dest/out.exe"
 ```
 
 Difference for now is negligible.. maybe a few nanoseconds... ¯/_(ツ)_/¯  

@@ -2,14 +2,14 @@ package server
 
 import java.io.RandomAccessFile
 import java.net.{ServerSocket, SocketException}
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 import java.util.concurrent.locks.ReentrantLock
 import scala.util.Using
-import mainargs.{main, arg, ParserForMethods, Flag}
+import mainargs.{Flag, ParserForMethods, arg, main}
 
 object ServerMain {
 
-  var serverLockFile = Paths.get("server.lock")
+  private var serverLockFile = Paths.get("server.lock")
 
   var serverSocket: ServerSocket = scala.compiletime.uninitialized
   @volatile var shutdownRequested = false
