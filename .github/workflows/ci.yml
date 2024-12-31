@@ -26,8 +26,8 @@ jobs:
           ./mill server.assembly
           ./mill client.jvm.assembly
           ./mill client.native.nativeLink
-          # start the server
-          java -jar ./out/server/assembly.dest/out.jar
+          # start the server in background
+          java -jar ./out/server/assembly.dest/out.jar &
           # try JVM version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
