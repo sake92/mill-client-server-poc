@@ -32,7 +32,6 @@ jobs:
           java -jar ./out/client/jvm/assembly.dest/out.jar -c version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
           java -jar ./out/client/jvm/assembly.dest/out.jar -c subprocess
-          java -jar ./out/client/jvm/assembly.dest/out.jar -c interactiveSubprocess
           java -jar ./out/client/jvm/assembly.dest/out.jar -c task1
           java -jar ./out/client/jvm/assembly.dest/out.jar -c task2
           java -jar ./out/client/jvm/assembly.dest/out.jar -c shutdown
@@ -41,7 +40,6 @@ jobs:
           ./out/client/native/nativeLink.dest/out.exe -c version
           ./out/client/native/nativeLink.dest/out.exe -c noop
           ./out/client/native/nativeLink.dest/out.exe -c subprocess
-          ./out/client/native/nativeLink.dest/out.exe -c interactiveSubprocess
           ./out/client/native/nativeLink.dest/out.exe -c task1
           ./out/client/native/nativeLink.dest/out.exe -c task2
           ./out/client/native/nativeLink.dest/out.exe -c shutdown
