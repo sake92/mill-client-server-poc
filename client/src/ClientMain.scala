@@ -48,12 +48,14 @@ object ClientMain {
         else ClientMessage.ExecuteCommand(command)
       sendMessageToServer(socket, clientMessage)
       // read from server and act on message
+      val inputStream = socket.getInputStream
       while true do {
-        val inputStream = socket.getInputStream
-        val size = inputStream.read()
-        val msgBytes = inputStream.readNBytes(size)
-        val msg = upickle.default.readBinary[ServerMessage](msgBytes)
-        messagesQueue.put(msg)
+        if inputStream.available() > 0 then {
+          val size = inputStream.read()
+          val msgBytes = inputStream.readNBytes(size)
+          val msg = upickle.default.readBinary[ServerMessage](msgBytes)
+          messagesQueue.put(msg)
+        }
         Thread.sleep(100)
       }
     } catch {

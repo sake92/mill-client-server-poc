@@ -26,40 +26,23 @@ class ClientHandler(socket: Socket) extends Runnable {
         case ClientMessage.ExecuteCommand("interactiveSubprocess") =>
           // interactive process, reads from user input or whatever
           val command =
-            if Properties.isWin then Seq("powershell", "Read-Host",  "\"Enter input\"")
+            if Properties.isWin then Seq("powershell", "Read-Host", "\"Enter input\"")
             else Seq("read", "-p", "\"Enter input: \"", "user_input")
           sendMessageToClient(ServerMessage.RunSubprocess(command))
           sendMessageToClient(ServerMessage.Done())
-        case ClientMessage.ExecuteCommand("task1") =>
-          // acquire the lock needed for task
-          while !ServerMain.shutdownRequested && !ServerMain.taskLock.tryLock() do {
-            sendMessageToClient(ServerMessage.Println("Task lock busy, waiting for it to be released..."))
-            Thread.sleep(1000)
+        case ClientMessage.ExecuteCommand(taskName) =>
+          if taskName == "task1" || taskName == "task2" then
+            Tasks.runWithLock(taskName, clientComms) {
+              sendMessageToClient(ServerMessage.Println(s"Working on task '${taskName}' ..."))
+              Thread.sleep(5_000) // busy working on task
+              sendMessageToClient(ServerMessage.Println(s"Task '${taskName}' is done"))
+              sendMessageToClient(ServerMessage.Done())
+              reading = false
+            }
+          else {
+            sendMessageToClient(ServerMessage.Println(s"Error: unknown task '${taskName}'"))
+            sendMessageToClient(ServerMessage.Done())
           }
-          // do the task
-          sendMessageToClient(ServerMessage.Println(s"Working on task ..."))
-          Thread.sleep(5_000) // busy working on task
-          sendMessageToClient(ServerMessage.Println("Done!"))
-          if ServerMain.taskLock.isLocked then ServerMain.taskLock.unlock()
-          sendMessageToClient(ServerMessage.Done())
-          reading = false
-        case ClientMessage.ExecuteCommand("task2") =>
-          // TODO different lock !
-          // acquire the lock needed for task
-          while !ServerMain.shutdownRequested && !ServerMain.taskLock.tryLock() do {
-            sendMessageToClient(ServerMessage.Println("Task lock busy, waiting for it to be released..."))
-            Thread.sleep(1000)
-          }
-          // do the task
-          sendMessageToClient(ServerMessage.Println(s"Working on task ..."))
-          Thread.sleep(5_000) // busy working on task
-          sendMessageToClient(ServerMessage.Println("Done!"))
-          if ServerMain.taskLock.isLocked then ServerMain.taskLock.unlock()
-          sendMessageToClient(ServerMessage.Done())
-          reading = false
-        case ClientMessage.ExecuteCommand(unknown) =>
-          sendMessageToClient(ServerMessage.Println(s"Error: unknown task '${unknown}'"))
-          sendMessageToClient(ServerMessage.Done())
         case ClientMessage.Shutdown() =>
           println("Shutdown requested.")
           sendMessageToClient(ServerMessage.Done())
@@ -73,7 +56,7 @@ class ClientHandler(socket: Socket) extends Runnable {
   } finally {
     if !socket.isClosed then socket.close()
   }
-
+  
   private def sendMessageToClient(msg: ServerMessage): Unit =
     val bytes = upickle.default.writeBinary(msg)
     socket.getOutputStream.write(bytes.length) // size acts as a delimiter too..
