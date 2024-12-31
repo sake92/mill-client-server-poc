@@ -1,12 +1,14 @@
 package server
 
 import java.net.Socket
+import java.net.SocketException
+import scala.util.Properties
 import protocol.ClientMessage
 import protocol.ServerMessage
 
 class ClientHandler(socket: Socket) extends Runnable {
 
-  override def run(): Unit = {
+  override def run(): Unit = try {
     var reading = true
     while (reading) {
       val inputStream = socket.getInputStream
@@ -14,8 +16,19 @@ class ClientHandler(socket: Socket) extends Runnable {
       val msgBytes = inputStream.readNBytes(size)
       val msg = upickle.default.readBinary[ClientMessage](msgBytes)
       msg match
-        case ClientMessage.ExecuteCommand("app.run") =>
+        case ClientMessage.ExecuteCommand("noop") =>
+          // this is to test how quick is the round-trip from client-server-client
+          sendMessageToClient(ServerMessage.Done())
+        case ClientMessage.ExecuteCommand("app.compile") =>
+          // non-interactive process, just run to completion
           sendMessageToClient(ServerMessage.RunSubprocess(Seq("java", "--version")))
+          sendMessageToClient(ServerMessage.Done())
+        case ClientMessage.ExecuteCommand("app.run") =>
+          // interactive process, reads from user input or whatever
+          val command =
+            if Properties.isWin then Seq("powershell", "Read-Host",  "\"Enter input\"")
+            else Seq("read", "-p", "\"Enter input: \"", "user_input")
+          sendMessageToClient(ServerMessage.RunSubprocess(command))
           sendMessageToClient(ServerMessage.Done())
         case ClientMessage.ExecuteCommand(cmd) =>
           // acquire the lock needed for task
@@ -37,7 +50,11 @@ class ClientHandler(socket: Socket) extends Runnable {
           ServerMain.serverSocket.close()
       Thread.sleep(100)
     }
-    socket.close()
+  } catch {
+    case e: SocketException if e.getMessage == "Connection reset" =>
+    // noop, client disconnected
+  } finally {
+    if !socket.isClosed then socket.close()
   }
 
   private def sendMessageToClient(msg: ServerMessage): Unit =

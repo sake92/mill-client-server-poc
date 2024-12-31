@@ -4,7 +4,6 @@ import upickle.default.ReadWriter
 
 sealed trait ServerMessage derives ReadWriter
 object ServerMessage {
-  case class Print(text: String) extends ServerMessage
   case class Println(text: String) extends ServerMessage
   case class RunSubprocess(cmd: Seq[String]) extends ServerMessage
   // server has nothing else to send to the client, client should exit after it finishes its work
