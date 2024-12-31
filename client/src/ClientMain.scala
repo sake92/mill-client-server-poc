@@ -1,9 +1,10 @@
 package client
 
-import java.io.*
 import java.net.ConnectException
 import java.net.Socket
-import mainargs.{main, arg, ParserForMethods, Flag}
+import mainargs.{ParserForMethods, arg, main}
+import protocol.ClientMessage
+import protocol.ServerMessage
 
 object ClientMain {
 
@@ -20,37 +21,44 @@ object ClientMain {
     }
   }
 
-  def executeServerCommand(command: String): Unit = {
+  private def executeServerCommand(command: String): Unit = {
     println(s"Executing server command '${command}'")
     val socket = connectToServer()
     // send command
-    val pw = new PrintWriter(socket.getOutputStream(), true)
-    pw.println(command)
-    // read from server
+    sendMessageToServer(socket, ClientMessage.ExecuteCommand(command))
+    // read from server and act on message
     var reading = true
     while (reading) {
-      val isr = new BufferedReader(new InputStreamReader(socket.getInputStream()))
-      isr.readLine() match {
-        case "DONE" =>
-          reading = false
-        case msg =>
-          println(s"GOT MSG: ${msg}")
-      }
+      val inputStream = socket.getInputStream
+      val size = inputStream.read()
+      val msgBytes = inputStream.readNBytes(size)
+      val msg = upickle.default.readBinary[ServerMessage](msgBytes)
+      msg match
+        case ServerMessage.Print(text) => print(text)
+        case ServerMessage.Println(text) => println(text)
+        case ServerMessage.RunSubprocess(cmd) => ??? // TODO
+        case ServerMessage.Done() => reading = false
       Thread.sleep(100)
     }
   }
 
-  def connectToServer(): Socket = {
+  private def connectToServer(): Socket = {
     try {
       new Socket("127.0.0.1", 9999)
     } catch {
       case e: ConnectException =>
         println("Could not connect to server. Starting a new one...")
-        val res = os.spawn(cmd = ("java", "-jar", "out/server/assembly.dest/out.jar"))
-        println(res.wrapped)
-        Thread.sleep(1000) // wait for server to start
+        val res = os.proc("java", "-jar", "out/server/assembly.dest/out.jar").spawn()
+      //  println(res.wrapped)
+        Thread.sleep(2000) // wait for server to start
         new Socket("127.0.0.1", 9999)
     }
+  }
+
+  private def sendMessageToServer(socket: Socket, msg: ClientMessage): Unit = {
+    val bytes = upickle.default.writeBinary(msg)
+    socket.getOutputStream.write(bytes.length) // size acts as a delimiter too..
+    socket.getOutputStream.write(bytes)
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)

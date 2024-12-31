@@ -13,9 +13,10 @@ object client extends Module {
   trait ClientModule extends PlatformScalaModule with ScalafmtModule {
     def scalaVersion = "3.6.2"
     def ivyDeps = Agg(
-        ivy"com.lihaoyi::mainargs::0.7.6",
-        ivy"com.lihaoyi::os-lib::0.11.3"
+      ivy"com.lihaoyi::mainargs::0.7.6",
+      ivy"com.lihaoyi::os-lib::0.11.3"
     )
+    def moduleDeps = Seq(protocol)
   }
 }
 
@@ -24,5 +25,13 @@ object server extends ScalaModule with ScalafmtModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::mainargs::0.7.6",
     ivy"com.lihaoyi::os-lib::0.11.3"
+  )
+  def moduleDeps = Seq(protocol)
+}
+
+object protocol extends ScalaModule with ScalafmtModule {
+  def scalaVersion = "3.6.2"
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::upickle::4.0.2"
   )
 }
