@@ -74,18 +74,16 @@ There are a few commands implemented:
 
 ```sh
 # JVM
-PS D:\projects\sake\mill-client-server-poc> hyperfine "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop" --ignore-failure
+PS D:\projects\sake\mill-client-server-poc> hyperfine --show-output --shell powershell "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
 Benchmark 1: java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
-  Time (mean ± σ):     566.8 ms ± 122.6 ms    [User: 113.8 ms, System: 26.3 ms]
-  Range (min … max):   470.9 ms … 887.7 ms    10 runs
+  Time (mean ± σ):     638.0 ms ±  83.6 ms    [User: 94.7 ms, System: 20.2 ms]
+  Range (min … max):   515.8 ms … 766.2 ms    10 runs
   
 # vs native
-PS D:\projects\sake\mill-client-server-poc> hyperfine "./out/client/native/nativeLink.dest/out.exe -c noop" --ignore-failure
+PS D:\projects\sake\mill-client-server-poc> hyperfine --show-output --shell powershell "./out/client/native/nativeLink.dest/out.exe -c noop"
 Benchmark 1: ./out/client/native/nativeLink.dest/out.exe -c noop
-  Time (mean ± σ):       2.3 ms ±   2.5 ms    [User: 0.0 ms, System: 0.4 ms]
-  Range (min … max):     0.0 ms …  17.5 ms    109 runs
-
-  Warning: Command took less than 5 ms to complete. Note that the results might be inaccurate because hyperfine can not calibrate the shell startup time much more precise than this limit. You can try to use the `-N`/`--shell=none` option to disable the shell completely.
-  Warning: Ignoring non-zero exit code.
+  Time (mean ± σ):     185.1 ms ±  19.6 ms    [User: 40.1 ms, System: 44.1 ms]
+  Range (min … max):   152.0 ms … 207.9 ms    10 runs
 ```
 
+Note these are ran on Windows, you'll probably need to remove `--shell powershell` if using *nix.
