@@ -10,8 +10,8 @@ class ClientHandler(socket: Socket) extends Runnable {
 
   override def run(): Unit = try {
     var reading = true
-    while (reading) {
-      val inputStream = socket.getInputStream
+    val inputStream = socket.getInputStream
+    while reading && inputStream.available() > 0 do {
       val size = inputStream.read()
       val msgBytes = inputStream.readNBytes(size)
       val msg = upickle.default.readBinary[ClientMessage](msgBytes)

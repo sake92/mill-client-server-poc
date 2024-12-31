@@ -19,25 +19,20 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 21
-      - run: |
-          # install hyperfine
-          sudo apt-get install -y hyperfine
-          
+      - name: Build and run
+        run: |
           # build
           ./mill server.assembly
           ./mill client.jvm.assembly
           ./mill client.native.nativeLink
-          
           # start the server in background
           java -jar ./out/server/assembly.dest/out.jar &
-          
           # try JVM version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c version
           java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
           java -jar ./out/client/jvm/assembly.dest/out.jar -c subprocess
           java -jar ./out/client/jvm/assembly.dest/out.jar -c task1
           java -jar ./out/client/jvm/assembly.dest/out.jar -c task2
-          
           # try native version
           chmod +x ./out/client/native/nativeLink.dest/out
           ./out/client/native/nativeLink.dest/out -c version
@@ -45,10 +40,20 @@ jobs:
           ./out/client/native/nativeLink.dest/out -c subprocess
           ./out/client/native/nativeLink.dest/out -c task1
           ./out/client/native/nativeLink.dest/out -c task2
-          
-          # mini bench
+          # shutdown server
+          java -jar ./out/client/jvm/assembly.dest/out.jar -c shutdown
+      - name: Mini benchmark
+        run: |
+          # install hyperfine
+          sudo apt-get install -y hyperfine
+          # build
+          ./mill server.assembly
+          ./mill client.jvm.assembly
+          ./mill client.native.nativeLink
+          # start the server in background
+          java -jar ./out/server/assembly.dest/out.jar &
+          # benchmark jvm vs native
           hyperfine --show-output "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
           hyperfine --show-output "./out/client/native/nativeLink.dest/out -c noop"
-          
           # shutdown server
           java -jar ./out/client/jvm/assembly.dest/out.jar -c shutdown

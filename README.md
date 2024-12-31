@@ -5,6 +5,7 @@ Proof of Concept goals:
 - multiple simultaneous clients
 - 2-way client-server protocol, in messagepack lightweight format
 - per-task in-memory locking (since there is 1 singleton server)
+- subprocesses run by client, to have terminal available, but still using server speed to compile etc.
 
 TODOs:
 - restart server automatically when its config file changes
