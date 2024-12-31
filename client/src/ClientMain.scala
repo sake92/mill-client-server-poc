@@ -22,10 +22,10 @@ object ClientMain {
   }
 
   private def executeServerCommand(command: String): Unit = {
-    println(s"Executing server command '${command}'")
     val socket = connectToServer()
     // send command
-    sendMessageToServer(socket, ClientMessage.ExecuteCommand(command))
+    val clientMessage = ClientMessage.ExecuteCommand(command)
+    sendMessageToServer(socket, clientMessage)
     // read from server and act on message
     var reading = true
     while (reading) {
@@ -34,10 +34,16 @@ object ClientMain {
       val msgBytes = inputStream.readNBytes(size)
       val msg = upickle.default.readBinary[ServerMessage](msgBytes)
       msg match
-        case ServerMessage.Print(text) => print(text)
-        case ServerMessage.Println(text) => println(text)
-        case ServerMessage.RunSubprocess(cmd) => ??? // TODO
-        case ServerMessage.Done() => reading = false
+        case ServerMessage.Print(text) =>
+          print(s"[server] ${text}")
+        case ServerMessage.Println(text) =>
+          println(s"[server] ${text}")
+        case ServerMessage.RunSubprocess(cmd) =>
+          val res = os.call(cmd = cmd)
+          println("[client] Executing subprocess done Output:")
+          println(res.out.text())
+        case ServerMessage.Done() =>
+          reading = false
       Thread.sleep(100)
     }
   }
@@ -49,17 +55,16 @@ object ClientMain {
       case e: ConnectException =>
         println("Could not connect to server. Starting a new one...")
         val res = os.proc("java", "-jar", "out/server/assembly.dest/out.jar").spawn()
-      //  println(res.wrapped)
+        //  println(res.wrapped)
         Thread.sleep(2000) // wait for server to start
         new Socket("127.0.0.1", 9999)
     }
   }
 
-  private def sendMessageToServer(socket: Socket, msg: ClientMessage): Unit = {
+  private def sendMessageToServer(socket: Socket, msg: ClientMessage): Unit =
     val bytes = upickle.default.writeBinary(msg)
-    socket.getOutputStream.write(bytes.length) // size acts as a delimiter too..
+    socket.getOutputStream.write(bytes.length) // size acts as a delimiter too!
     socket.getOutputStream.write(bytes)
-  }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }

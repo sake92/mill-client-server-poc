@@ -1,10 +1,8 @@
 package server
 
-import java.io.{BufferedReader, InputStreamReader, PrintWriter}
 import java.net.Socket
-import protocol.*
-
-import java.nio.charset.StandardCharsets
+import protocol.ClientMessage
+import protocol.ServerMessage
 
 class ClientHandler(socket: Socket) extends Runnable {
 
@@ -16,6 +14,9 @@ class ClientHandler(socket: Socket) extends Runnable {
       val msgBytes = inputStream.readNBytes(size)
       val msg = upickle.default.readBinary[ClientMessage](msgBytes)
       msg match
+        case ClientMessage.ExecuteCommand("app.run") =>
+          sendMessageToClient(ServerMessage.RunSubprocess(Seq("java", "--version")))
+          sendMessageToClient(ServerMessage.Done())
         case ClientMessage.ExecuteCommand(cmd) =>
           // acquire the lock needed for task
           while !ServerMain.shutdownRequested && !ServerMain.taskLock.tryLock() do {
@@ -39,10 +40,9 @@ class ClientHandler(socket: Socket) extends Runnable {
     socket.close()
   }
 
-  private def sendMessageToClient(msg: ServerMessage): Unit = {
+  private def sendMessageToClient(msg: ServerMessage): Unit =
     val bytes = upickle.default.writeBinary(msg)
     socket.getOutputStream.write(bytes.length) // size acts as a delimiter too..
     socket.getOutputStream.write(bytes)
-  }
 
 }

@@ -3,6 +3,7 @@
 Proof of Concept goals:
 - one server per workspace/project
 - multiple simultaneous clients
+- messagepack 2-way client-server protocol
 - in-memory task locking
 
 TODOs:
