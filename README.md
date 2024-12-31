@@ -4,7 +4,7 @@ Proof of Concept goals:
 - one server per workspace/project
 - multiple simultaneous clients
 - 2-way client-server protocol, in messagepack lightweight format
-- task locking
+- per-task in-memory locking (since there is 1 singleton server)
 
 TODOs:
 - restart server automatically when its config file changes
