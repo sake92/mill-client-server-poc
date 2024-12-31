@@ -11,7 +11,7 @@ object Tasks {
   )
   private val MaxRetries = 10
 
-  def runWithLock(taskName: String, clientComms: ClientComms)(taskCode: => Unit): Unit = {
+  def runWithLock(taskName: String, sendMessageToClient: ServerMessage => Unit)(taskCode: => Unit): Unit = {
     val taskLock = taskLocks(taskName)
     var attempts = 1
     var didRun = false
@@ -22,7 +22,7 @@ object Tasks {
         try taskCode
         finally taskLock.unlock()
       } else {
-        clientComms.sendMessage(
+        sendMessageToClient(
           ServerMessage.Println(s"Task lock for ${taskName} is locked by another task, retrying in 1s...")
         )
         attempts += 1
@@ -31,10 +31,10 @@ object Tasks {
     }
     // if taskLock.isLocked then taskLock.unlock()
     if !didRun then {
-      clientComms.sendMessage(
+      sendMessageToClient(
         ServerMessage.Println(s"Task lock for ${taskName} is locked by another task, gave up after ${MaxRetries} tries")
       )
-      clientComms.sendMessage(ServerMessage.Done())
+      sendMessageToClient(ServerMessage.Done())
     }
   }
 

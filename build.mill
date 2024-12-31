@@ -6,9 +6,12 @@ import mill.scalalib.scalafmt._
 import mill.scalalib.publish._
 
 object client extends Module {
-  object jvm extends ClientModule
+  object jvm extends ClientModule{
+    def moduleDeps = Seq(protocol.jvm)
+  }
   object native extends ClientModule with ScalaNativeModule {
     def scalaNativeVersion = "0.5.6"
+    def moduleDeps = Seq(protocol.native)
   }
   trait ClientModule extends PlatformScalaModule with ScalafmtModule {
     def scalaVersion = "3.6.2"
@@ -16,7 +19,6 @@ object client extends Module {
       ivy"com.lihaoyi::mainargs::0.7.6",
       ivy"com.lihaoyi::os-lib::0.11.3"
     )
-    def moduleDeps = Seq(protocol)
   }
 }
 
@@ -26,12 +28,18 @@ object server extends ScalaModule with ScalafmtModule {
     ivy"com.lihaoyi::mainargs::0.7.6",
     ivy"com.lihaoyi::os-lib::0.11.3"
   )
-  def moduleDeps = Seq(protocol)
+  def moduleDeps = Seq(protocol.jvm)
 }
 
-object protocol extends ScalaModule with ScalafmtModule {
-  def scalaVersion = "3.6.2"
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi::upickle::4.0.2"
-  )
+object protocol extends Module {
+  object jvm extends ProtocolModule
+  object native extends ProtocolModule with ScalaNativeModule {
+    def scalaNativeVersion = "0.5.6"
+  }
+  trait ProtocolModule extends PlatformScalaModule with ScalafmtModule {
+    def scalaVersion = "3.6.2"
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi::upickle::4.0.2"
+    )
+  }
 }

@@ -32,7 +32,7 @@ class ClientHandler(socket: Socket) extends Runnable {
           sendMessageToClient(ServerMessage.Done())
         case ClientMessage.ExecuteCommand(taskName) =>
           if taskName == "task1" || taskName == "task2" then
-            Tasks.runWithLock(taskName, clientComms) {
+            Tasks.runWithLock(taskName, sendMessageToClient) {
               sendMessageToClient(ServerMessage.Println(s"Working on task '${taskName}' ..."))
               Thread.sleep(5_000) // busy working on task
               sendMessageToClient(ServerMessage.Println(s"Task '${taskName}' is done"))

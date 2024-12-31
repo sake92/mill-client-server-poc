@@ -12,7 +12,7 @@ TODOs:
 ## Server 
 
 ```sh
-./mill -i server.assembly
+./mill server.assembly
 java -jar ./out/server/assembly.dest/out.jar
 ```
 
@@ -22,13 +22,13 @@ Both JVM and ScalaNative work.
 
 ### JVM
 ```sh
-./mill -i client.jvm.assembly
+./mill client.jvm.assembly
 java -jar ./out/client/jvm/assembly.dest/out.jar
 ```
 
 ### ScalaNative
 ```sh
-./mill -i show client.native.nativeLink
+./mill show client.native.nativeLink
 ./out/client/native/nativeLink.dest/out.exe
 ```
 
@@ -50,11 +50,11 @@ Could not connect to server. Starting a new one...
 If 2 clients run the same task, it will be done with an in-memory lock being held.  
 This is output from the client2 (while client1 was already running the task):
 ```sh
-> java -jar ./out/client/jvm/assembly.dest/out.jar -c task
+> java -jar ./out/client/jvm/assembly.dest/out.jar -c task1
 [server] Task lock busy, waiting for it to be released...
 [server] Task lock busy, waiting for it to be released...
 [server] Task lock busy, waiting for it to be released...
-[server] Working on task 'mytask' ...
+[server] Working on task 'task1' ...
 ```
 
 
@@ -73,11 +73,19 @@ There are a few commands implemented:
 ### Measuring JVM vs ScalaNative
 
 ```sh
-hyperfine "java -jar .\out\client\jvm\assembly.dest\out.jar -c noop"
-# vs
-hyperfine "./out/client/native/nativeLink.dest/out.exe"
-```
+# JVM
+PS D:\projects\sake\mill-client-server-poc> hyperfine "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop" --ignore-failure
+Benchmark 1: java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
+  Time (mean ± σ):     566.8 ms ± 122.6 ms    [User: 113.8 ms, System: 26.3 ms]
+  Range (min … max):   470.9 ms … 887.7 ms    10 runs
+  
+# vs native
+PS D:\projects\sake\mill-client-server-poc> hyperfine "./out/client/native/nativeLink.dest/out.exe -c noop" --ignore-failure
+Benchmark 1: ./out/client/native/nativeLink.dest/out.exe -c noop
+  Time (mean ± σ):       2.3 ms ±   2.5 ms    [User: 0.0 ms, System: 0.4 ms]
+  Range (min … max):     0.0 ms …  17.5 ms    109 runs
 
-Difference for now is negligible.. maybe a few nanoseconds... ¯/_(ツ)_/¯  
-Maybe it will be noticeable in bigger tasks.
+  Warning: Command took less than 5 ms to complete. Note that the results might be inaccurate because hyperfine can not calibrate the shell startup time much more precise than this limit. You can try to use the `-N`/`--shell=none` option to disable the shell completely.
+  Warning: Ignoring non-zero exit code.
+```
 
