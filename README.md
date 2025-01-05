@@ -7,8 +7,13 @@ Proof of Concept goals:
 - per-task in-memory locking (since there is 1 singleton server)
 - subprocesses run by client, to have terminal available, but still using server speed to compile etc.
 
+Comparison of how JVM build tool daemons handle interactive processes:  
+https://github.com/sake92/java-build-tool-daemon-interactive  
+Spolier: poorly
+
 TODOs:
-- restart server automatically when its config file changes
+- reload server config automatically when its config file changes
+- restart server automatically when its JVM config file changes
 
 ## Server 
 
@@ -75,16 +80,16 @@ There are a few commands implemented:
 
 ```sh
 # JVM
-PS D:\projects\sake\mill-client-server-poc> hyperfine --show-output --shell powershell "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
-Benchmark 1: java -jar ./out/client/jvm/assembly.dest/out.jar -c noop
-  Time (mean ± σ):     638.0 ms ±  83.6 ms    [User: 94.7 ms, System: 20.2 ms]
-  Range (min … max):   515.8 ms … 766.2 ms    10 runs
+PS D:\projects\sake\mill-client-server-poc> hyperfine "java -jar out\client\jvm\assembly.dest\out.jar -c noop"
+Benchmark 1: java -jar out\client\jvm\assembly.dest\out.jar -c noop
+  Time (mean ± σ):     323.0 ms ±  10.8 ms    [User: 47.8 ms, System: 11.9 ms]
+  Range (min … max):   305.7 ms … 346.4 ms    10 runs
   
 # vs native
-PS D:\projects\sake\mill-client-server-poc> hyperfine --show-output --shell powershell "./out/client/native/nativeLink.dest/out.exe -c noop"
-Benchmark 1: ./out/client/native/nativeLink.dest/out.exe -c noop
-  Time (mean ± σ):     185.1 ms ±  19.6 ms    [User: 40.1 ms, System: 44.1 ms]
-  Range (min … max):   152.0 ms … 207.9 ms    10 runs
+PS D:\projects\sake\mill-client-server-poc> hyperfine "out\client\native\nativeLink.dest\out.exe -c noop"
+Benchmark 1: out\client\native\nativeLink.dest\out.exe -c noop
+  Time (mean ± σ):      37.8 ms ±   5.5 ms    [User: 1.9 ms, System: 1.8 ms]
+  Range (min … max):    27.1 ms …  53.4 ms    59 runs
 ```
 
-Note these are ran on Windows, you'll probably need to remove `--shell powershell` if using *nix.
+Note these are ran on Windows, you can see the GitHub Actions logs for Linux version.

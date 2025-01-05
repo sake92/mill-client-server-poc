@@ -50,7 +50,7 @@ class ClientHandler(socket: Socket) extends Runnable {
             ServerMain.shutdownRequested = true
             ServerMain.serverSocket.close()
       }
-      Thread.sleep(100)
+      Thread.sleep(1)
     }
   } catch {
     case e: SocketException if e.getMessage == "Connection reset" =>

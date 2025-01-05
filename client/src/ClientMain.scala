@@ -56,7 +56,7 @@ object ClientMain {
           val msg = upickle.default.readBinary[ServerMessage](msgBytes)
           messagesQueue.put(msg)
         }
-        Thread.sleep(100)
+        Thread.sleep(1)
       }
     } catch {
       // expected
