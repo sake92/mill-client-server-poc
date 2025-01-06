@@ -5,7 +5,8 @@ Proof of Concept goals:
 - multiple simultaneous clients
 - 2-way client-server protocol, in messagepack lightweight format
 - per-task in-memory locking (since there is 1 singleton server)
-- subprocesses run by client, to have terminal available, but still using server speed to compile etc.
+- subprocesseses are run by client to have terminal available, but still using server speed to compile etc.
+- watch mode with a subprocess works nicely
 
 Comparison of how JVM build tool daemons handle interactive processes:  
 https://github.com/sake92/java-build-tool-daemon-interactive  
@@ -71,6 +72,7 @@ There are a few commands implemented:
 - `noop`, does nothing on server, just sends back a "done" command
 - `subprocess`, tells the client to run a subprocess (not interactive)
 - `interactiveSubprocess`, tells the client to run a subprocess (interactive, requires input from user)
+- `-w interactiveSubprocess`, tells the client to run an interactive subprocess in watch mode, watching "example_project" files
 - `task1`, runs a slow task, so you can test the task-level locking behavior
 - `task2`, same as `task1`, but using a different lock, so they can run independently
 - `shutdown`, stops the server
