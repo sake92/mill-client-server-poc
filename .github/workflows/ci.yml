@@ -52,7 +52,7 @@ jobs:
           ./mill client.jvm.assembly
           ./mill client.native.nativeLink
           # benchmark jvm vs native
-          hyperfine --show-output "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
-          hyperfine --show-output "./out/client/native/nativeLink.dest/out -c noop"
+          hyperfine "java -jar ./out/client/jvm/assembly.dest/out.jar -c noop"
+          hyperfine "./out/client/native/nativeLink.dest/out -c noop"
           # shutdown server
           java -jar ./out/client/jvm/assembly.dest/out.jar -c shutdown
