@@ -14,6 +14,7 @@ Spolier: poorly
 TODOs:
 - reload server config automatically when its config file changes
 - restart server automatically when its JVM config file changes
+- handle server/client disconnects gracefully
 
 ## Server 
 
